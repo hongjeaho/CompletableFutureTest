@@ -65,6 +65,24 @@ class ProductServiceTest {
   }
 
   @Test
+  @DisplayName("Executor 사용 비동기 가격 호출")
+  public void getPriceSupplyAsyncCommonThread() {
+    log.info("메소드 호출 전");
+    CompletableFuture<Void>  future =
+        productService.getPriceSupplyAsyncCommonThread(name)
+        .thenAccept(p -> {
+          log.info("콜백 가격은 " + p + ", 데이터는 반환 하지 않음") ;
+          Assertions.assertThat(price).isEqualTo(p);
+        });
+
+    /**
+     * Non-Blocking 처리하므로 thenAccept 처리전 프로세스가 종료 되므로
+     * future.join()을 사용하여 non-blocking 처리
+     */
+    Assertions.assertThat(future.join()).isNull();
+  }
+
+  @Test
   @DisplayName("비동기 방식으로 가격 호출 및 Non-Blocking (반환값없음)")
   public void nonBlockingNoResult() {
     CompletableFuture<Void> future =  productService.getPriceSupplyAsync(name)

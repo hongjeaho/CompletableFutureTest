@@ -5,7 +5,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Slf4j
@@ -46,7 +45,7 @@ public class ProductService {
   }
 
   /**
-   * 비동기 방식으로 가격 호출 (Blocking + Non-Brocking)
+   * 비동기 방식으로 가격 호출 (공통 쓰래드 사)
    * @param name
    * @return
    */
@@ -63,10 +62,28 @@ public class ProductService {
     return future;
   }
 
+  /**
+   * 비동기 방식으로 가격 호출 (executor 사용)
+   * @param name
+   * @return
+   */
+  public CompletableFuture<Integer> getPriceSupplyAsyncCommonThread(final String name) {
+    log.info("비동기방식으로 호출 (가격 조회)");
+
+    return CompletableFuture.supplyAsync(() -> {
+      log.info("Supply Async Thread");
+      return productRepository.getPriceByName(name);
+    }, executor);
+  }
+
+  /**
+   * 비동기 방식으로 가격 호출 (ThreadPoolTask 사용)
+   * @param name
+   * @return
+   */
   public CompletableFuture<Integer> getPriceSupplyAsync(final String name) {
     log.info("비동기방식으로 호출 (가격 조회)");
 
-    // Executor 파라메터를 사용해서 common pool에서 동작하지 않고 별도의 쓰레드 풀에서 동작 하도록 한다.
     return CompletableFuture.supplyAsync(() -> {
       log.info("Supply Async Thread");
       return productRepository.getPriceByName(name);
